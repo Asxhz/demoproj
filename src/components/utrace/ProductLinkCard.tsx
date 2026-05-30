@@ -10,10 +10,9 @@ interface ProductLinkCardProps {
   user: User;
   state: string;
   callbackUrl: string;
-  clientId?: string;
 }
 
-export default function ProductLinkCard({ user, state, callbackUrl, clientId }: ProductLinkCardProps) {
+export default function ProductLinkCard({ user, state, callbackUrl }: ProductLinkCardProps) {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -24,40 +23,10 @@ export default function ProductLinkCard({ user, state, callbackUrl, clientId }: 
     setErrorMessage(null);
 
     try {
-      const payload = {
-        state,
-        client_id: clientId ?? "claudex",
-        external_user_id: user.id,
-        display_name: user.display_name,
-        email: user.email ?? undefined,
-      };
-
-      const payloadStr = JSON.stringify(payload, Object.keys(payload).sort());
-
-      let signature = "";
-      const secret = process.env.NEXT_PUBLIC_PRODUCT_LINK_SECRET;
-      if (secret) {
-        const enc = new TextEncoder();
-        const key = await crypto.subtle.importKey(
-          "raw",
-          enc.encode(secret),
-          { name: "HMAC", hash: "SHA-256" },
-          false,
-          ["sign"]
-        );
-        const sig = await crypto.subtle.sign("HMAC", key, enc.encode(payloadStr));
-        signature = Array.from(new Uint8Array(sig))
-          .map((b) => b.toString(16).padStart(2, "0"))
-          .join("");
-      }
-
-      const res = await fetch(callbackUrl, {
+      const res = await fetch("/api/utrace/link", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(signature ? { "x-utrace-product-link-signature": signature } : {}),
-        },
-        body: JSON.stringify(payload),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ state, callback_url: callbackUrl }),
       });
 
       if (!res.ok) {
