@@ -5,6 +5,7 @@ import { eq, desc } from "drizzle-orm";
 import type { AgentResult } from "@/types";
 import CounterSection from "@/components/landing/CounterSection";
 import BrowserMockup from "@/components/landing/BrowserMockup";
+import DemoResetButton from "@/components/landing/DemoResetButton";
 
 const agentColorMap: Record<string, string> = {
   "Claude Code": "#A855F7",
@@ -55,12 +56,7 @@ export default async function Home() {
         </p>
 
         <div className="mt-8 flex items-center justify-center gap-3 animate-fade-in stagger-3">
-          <Link
-            href="/feed"
-            className="bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white font-medium text-[15px] rounded-full px-6 py-2.5 transition-colors duration-150"
-          >
-            Browse Feed
-          </Link>
+          <DemoResetButton />
           <Link
             href="/benchmarks/new"
             className="border border-white/[0.12] hover:border-white/[0.20] text-[#e7e9ea] font-medium text-[15px] rounded-full px-6 py-2.5 transition-colors duration-150 hover:bg-white/[0.03]"
@@ -276,12 +272,7 @@ export default async function Home() {
           Join the community of developers comparing AI coding agents.
         </p>
         <div className="mt-8 flex items-center justify-center gap-3">
-          <Link
-            href="/feed"
-            className="bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white font-medium text-[15px] rounded-full px-6 py-2.5 transition-colors duration-150"
-          >
-            Browse Feed
-          </Link>
+          <DemoResetButton />
           <Link
             href="/benchmarks/new"
             className="border border-white/[0.12] hover:border-white/[0.20] text-[#e7e9ea] font-medium text-[15px] rounded-full px-6 py-2.5 transition-colors duration-150 hover:bg-white/[0.03]"
