@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, type FormEvent } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import type { Comment, User } from "@/types";
 import { timeAgo } from "@/lib/utils";
 import Avatar from "@/components/ui/Avatar";
-import Button from "@/components/ui/Button";
 
 type CommentWithAuthor = Comment & { author: User };
 
@@ -69,7 +68,6 @@ export default function CommentThread({ initialComments, postId }: CommentThread
 
       pollCountRef.current += 1;
 
-      // Stop after 2 minutes worth of polls (40 * 3s = 120s) or 10 consecutive empty polls
       if (pollCountRef.current >= 40 || noNewCountRef.current >= 10) {
         stopPolling();
       }
@@ -83,7 +81,6 @@ export default function CommentThread({ initialComments, postId }: CommentThread
     return () => stopPolling();
   }, [fetchComments, stopPolling]);
 
-  // Clear new-comment animation class after 300ms
   useEffect(() => {
     if (newCommentIds.size === 0) return;
     const timer = setTimeout(() => {
@@ -98,7 +95,7 @@ export default function CommentThread({ initialComments, postId }: CommentThread
     containerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  async function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault();
     if (!body.trim() || loading) return;
 
@@ -119,7 +116,6 @@ export default function CommentThread({ initialComments, postId }: CommentThread
 
       const newComment = await res.json();
 
-      // Optimistic add - construct a minimal author object from what we have
       const optimistic: CommentWithAuthor = {
         id: newComment.id,
         post_id: newComment.post_id,
@@ -148,80 +144,119 @@ export default function CommentThread({ initialComments, postId }: CommentThread
   }
 
   return (
-    <div className="space-y-0">
+    <div>
+      {/* Reply input area - Twitter style */}
+      <form onSubmit={handleSubmit} className="px-4 py-3 border-b border-white/[0.08]">
+        <div className="flex items-start gap-3">
+          <Avatar handle="you" displayName="You" size="md" />
+          <div className="flex-1 pt-2">
+            <textarea
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              placeholder="Post your reply"
+              rows={2}
+              className="w-full resize-none bg-transparent text-[17px] text-[#F4F4F5] placeholder:text-[rgba(244,244,245,0.35)] focus:outline-none border-none"
+            />
+            {error && <p className="mt-1 text-xs text-[#EF4444]">{error}</p>}
+            <div className="flex items-center justify-end pt-2 border-t border-white/[0.08]">
+              <button
+                type="submit"
+                disabled={!body.trim() || loading}
+                className="bg-[#6366F1] hover:bg-[#5558E6] disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-[15px] rounded-full px-5 py-1.5 transition-colors cursor-pointer"
+              >
+                {loading ? "Posting..." : "Reply"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+
       {/* New comments pill */}
       {showNewPill && pendingCount > 0 && (
-        <div className="sticky top-0 z-10 flex justify-center py-2">
+        <div className="sticky top-0 z-10 flex justify-center py-2 border-b border-white/[0.08]">
           <button
             onClick={handleDismissPill}
-            className="rounded-full bg-[#38BDF8]/90 px-4 py-1.5 text-xs font-medium text-[#09090B] shadow-lg backdrop-blur-sm hover:bg-[#38BDF8] transition-colors"
+            className="rounded-full bg-[#6366F1]/90 px-4 py-1.5 text-[13px] font-medium text-white shadow-lg backdrop-blur-sm hover:bg-[#6366F1] transition-colors"
           >
-            {pendingCount} new comment{pendingCount !== 1 ? "s" : ""}
+            Show {pendingCount} new {pendingCount !== 1 ? "replies" : "reply"}
           </button>
         </div>
       )}
 
-      <div ref={containerRef} className="divide-y divide-white/[0.06]">
+      {/* Comments as tweet-style items */}
+      <div ref={containerRef}>
         {comments.map((comment) => (
           <div
             key={comment.id}
-            className="px-4 py-4 flex items-start gap-3"
+            className="px-4 py-3 border-b border-white/[0.08] post-hover transition-colors duration-200"
             style={{
               animation: newCommentIds.has(comment.id)
                 ? "commentFadeIn 300ms ease-out forwards"
                 : undefined,
             }}
           >
-            <Avatar
-              handle={comment.author.handle}
-              displayName={comment.author.display_name}
-              size="sm"
-            />
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-[#F4F4F5]">
-                  {comment.author.display_name}
-                </span>
-                <span className="text-xs text-[rgba(244,244,245,0.40)]">
-                  @{comment.author.handle}
-                </span>
-                {comment.created_at && (
-                  <>
-                    <span className="text-[rgba(244,244,245,0.40)]">&middot;</span>
-                    <span className="text-xs text-[rgba(244,244,245,0.40)]">
-                      {timeAgo(new Date(comment.created_at))}
-                    </span>
-                  </>
-                )}
+            <div className="flex gap-3">
+              <div className="shrink-0 pt-0.5">
+                <Avatar
+                  handle={comment.author.handle}
+                  displayName={comment.author.display_name}
+                  size="md"
+                />
               </div>
-              <p className="mt-1 text-sm text-[rgba(244,244,245,0.62)] leading-relaxed">
-                {comment.body}
-              </p>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1">
+                  <span className="text-[15px] font-bold text-[#F4F4F5] leading-5">
+                    {comment.author.display_name}
+                  </span>
+                  <span className="text-[15px] text-[rgba(244,244,245,0.45)] leading-5">
+                    @{comment.author.handle}
+                  </span>
+                  {comment.created_at && (
+                    <>
+                      <span className="text-[rgba(244,244,245,0.30)]">&middot;</span>
+                      <span className="text-[15px] text-[rgba(244,244,245,0.45)] leading-5">
+                        {timeAgo(new Date(comment.created_at))}
+                      </span>
+                    </>
+                  )}
+                </div>
+                <p className="mt-0.5 text-[15px] text-[#F4F4F5] leading-[1.5]">
+                  {comment.body}
+                </p>
+
+                {/* Comment action bar */}
+                <div className="mt-2 flex items-center gap-8 -ml-2">
+                  <button className="p-1.5 rounded-full action-comment transition-colors duration-200">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-[rgba(244,244,245,0.35)]">
+                      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                  <button className="p-1.5 rounded-full action-repost transition-colors duration-200">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-[rgba(244,244,245,0.35)]">
+                      <path d="M17 1l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M3 11V9a4 4 0 0 1 4-4h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M7 23l-4-4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M21 13v2a4 4 0 0 1-4 4H3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                  <button className="p-1.5 rounded-full action-like transition-colors duration-200">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-[rgba(244,244,245,0.35)]">
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                  <button className="p-1.5 rounded-full action-share transition-colors duration-200">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-[rgba(244,244,245,0.35)]">
+                      <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      <polyline points="16,6 12,2 8,6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      <line x1="12" y1="2" x2="12" y2="15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         ))}
       </div>
-
-      <form onSubmit={handleSubmit} className="px-4 py-4 border-t border-white/[0.08]">
-        <div className="flex items-start gap-3">
-          <Avatar handle="you" displayName="You" size="sm" />
-          <div className="flex-1">
-            <textarea
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              placeholder="Write a comment..."
-              rows={3}
-              className="w-full resize-none rounded-lg border border-white/[0.08] bg-[#09090B] px-3 py-2 text-sm text-[#F4F4F5] placeholder:text-[rgba(244,244,245,0.40)] focus:outline-none focus:border-[#38BDF8]/50 transition-colors"
-            />
-            {error && <p className="mt-2 text-xs text-[#EF4444]">{error}</p>}
-            <div className="mt-2 flex justify-end">
-              <Button type="submit" disabled={!body.trim() || loading}>
-                {loading ? "Posting..." : "Reply"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </form>
 
       <style>{`
         @keyframes commentFadeIn {
