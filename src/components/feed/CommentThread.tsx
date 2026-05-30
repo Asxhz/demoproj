@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import type { Comment, User } from "@/types";
-import { timeAgo } from "@/lib/utils";
+import { timeAgo, fakeCommentEngagement } from "@/lib/utils";
 import Avatar from "@/components/ui/Avatar";
 
 type CommentWithAuthor = Comment & { author: User };
@@ -225,33 +225,51 @@ export default function CommentThread({ initialComments, postId }: CommentThread
                 </p>
 
                 {/* Comment action bar */}
-                <div className="mt-2 flex items-center gap-8 -ml-2">
-                  <button className="p-1.5 rounded-full action-comment transition-colors duration-150">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-[#536471]">
-                      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </button>
-                  <button className="p-1.5 rounded-full action-repost transition-colors duration-150">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-[#536471]">
-                      <path d="M17 1l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M3 11V9a4 4 0 0 1 4-4h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M7 23l-4-4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M21 13v2a4 4 0 0 1-4 4H3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </button>
-                  <button className="p-1.5 rounded-full action-like transition-colors duration-150">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-[#536471]">
-                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </button>
-                  <button className="p-1.5 rounded-full action-share transition-colors duration-150">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-[#536471]">
-                      <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                      <polyline points="16,6 12,2 8,6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                      <line x1="12" y1="2" x2="12" y2="15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </button>
-                </div>
+                {(() => {
+                  const eng = fakeCommentEngagement(comment.id);
+                  return (
+                    <div className="mt-2 flex items-center justify-between max-w-[350px] -ml-2">
+                      {/* Reply */}
+                      <button className="group flex items-center gap-1">
+                        <span className="p-1.5 rounded-full action-comment transition-colors duration-150">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" className="text-[#536471] group-hover:text-[#1d9bf0] transition-colors">
+                            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </span>
+                        {eng.replies > 0 && <span className="text-[12px] text-[#536471] group-hover:text-[#1d9bf0] transition-colors tabular-nums">{eng.replies}</span>}
+                      </button>
+                      {/* Repost */}
+                      <button className="group flex items-center gap-1">
+                        <span className="p-1.5 rounded-full action-repost transition-colors duration-150">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" className="text-[#536471] group-hover:text-[#00ba7c] transition-colors">
+                            <path d="M17 1l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M3 11V9a4 4 0 0 1 4-4h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M7 23l-4-4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M21 13v2a4 4 0 0 1-4 4H3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </span>
+                        {eng.reposts > 0 && <span className="text-[12px] text-[#536471] group-hover:text-[#00ba7c] transition-colors tabular-nums">{eng.reposts}</span>}
+                      </button>
+                      {/* Like */}
+                      <button className="group flex items-center gap-1">
+                        <span className="p-1.5 rounded-full action-like transition-colors duration-150">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" className="text-[#536471] group-hover:text-[#f91880] transition-colors">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </span>
+                        {eng.likes > 0 && <span className="text-[12px] text-[#536471] group-hover:text-[#f91880] transition-colors tabular-nums">{eng.likes}</span>}
+                      </button>
+                      {/* Share */}
+                      <button className="p-1.5 rounded-full action-share transition-colors duration-150">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" className="text-[#536471] hover:text-[#1d9bf0] transition-colors">
+                          <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          <polyline points="16,6 12,2 8,6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          <line x1="12" y1="2" x2="12" y2="15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </button>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </div>

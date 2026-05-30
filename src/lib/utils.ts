@@ -34,6 +34,15 @@ export function generateId(prefix: string): string {
   return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
+export function fakeCommentEngagement(commentId: string): { likes: number; reposts: number; replies: number } {
+  const hash = simpleHash(commentId);
+  return {
+    likes: (hash % 42),
+    reposts: (hash % 8),
+    replies: (hash % 5),
+  };
+}
+
 export function fakeEngagement(postId: string): { likes: number; reposts: number; views: string; bookmarks: number; comments: number } {
   const hash = simpleHash(postId);
   return {
