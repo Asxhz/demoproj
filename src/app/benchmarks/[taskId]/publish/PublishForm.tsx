@@ -69,7 +69,7 @@ export default function PublishForm({
       {runs.length > 0 && (
         <div className="mt-6">
           <h2 className="text-sm font-semibold text-[#F4F4F5] mb-3">
-            Benchmark Runs (correct data)
+            Agent Results
           </h2>
           <div className="grid gap-3">
             {runs.map((run) => (
@@ -91,7 +91,7 @@ export default function PublishForm({
           value={body}
           onChange={(e) => setBody(e.target.value)}
           rows={8}
-          className="w-full resize-none rounded-lg border border-white/[0.08] bg-[#09090B] px-3 py-2 text-sm text-[#F4F4F5] placeholder:text-[rgba(244,244,245,0.40)] focus:outline-none focus:border-[#6366F1]/50 transition-colors"
+          className="w-full resize-none rounded-lg border border-white/[0.08] bg-[#09090B] px-3 py-2 text-sm text-[#F4F4F5] placeholder:text-[rgba(244,244,245,0.40)] focus:outline-none focus:border-[#38BDF8]/50 transition-colors"
           placeholder="Write about your benchmark results..."
         />
 

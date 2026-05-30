@@ -107,7 +107,7 @@ export default async function DashboardPage() {
             No benchmarks yet.{" "}
             <Link
               href="/benchmarks/new"
-              className="text-[#6366F1] hover:underline"
+              className="text-[#38BDF8] hover:underline"
             >
               Create one
             </Link>

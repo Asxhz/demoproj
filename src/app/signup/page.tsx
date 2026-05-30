@@ -7,7 +7,7 @@ export default function SignupPage() {
       <SignupForm />
       <p className="mt-4 text-sm text-[rgba(244,244,245,0.40)]">
         Already have an account?{" "}
-        <Link href="/login" className="text-[#6366F1] hover:underline">
+        <Link href="/login" className="text-[#38BDF8] hover:underline">
           Log in
         </Link>
       </p>

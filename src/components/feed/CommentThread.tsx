@@ -85,7 +85,7 @@ export default function CommentThread({ comments, postId }: CommentThreadProps) 
           onChange={(e) => setBody(e.target.value)}
           placeholder="Write a comment..."
           rows={3}
-          className="w-full resize-none rounded-lg border border-white/[0.08] bg-[#09090B] px-3 py-2 text-sm text-[#F4F4F5] placeholder:text-[rgba(244,244,245,0.40)] focus:outline-none focus:border-[#6366F1]/50 transition-colors"
+          className="w-full resize-none rounded-lg border border-white/[0.08] bg-[#09090B] px-3 py-2 text-sm text-[#F4F4F5] placeholder:text-[rgba(244,244,245,0.40)] focus:outline-none focus:border-[#38BDF8]/50 transition-colors"
         />
         {error && <p className="mt-2 text-xs text-[#EF4444]">{error}</p>}
         <div className="mt-2 flex justify-end">
