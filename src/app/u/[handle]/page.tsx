@@ -1,10 +1,11 @@
 import { notFound } from "next/navigation";
 import { db } from "@/db";
-import { users, feedPosts } from "@/db/schema";
-import { eq, desc, and } from "drizzle-orm";
-import type { FeedPost, User } from "@/types";
+import { users, feedPosts, benchmarkTasks } from "@/db/schema";
+import { eq, desc, and, count } from "drizzle-orm";
+import type { FeedPost, User, AgentResult } from "@/types";
 import Avatar from "@/components/ui/Avatar";
 import FeedPostCard from "@/components/feed/FeedPostCard";
+import Link from "next/link";
 
 export default async function UserProfilePage({
   params,
@@ -43,66 +44,92 @@ export default async function UserProfilePage({
       created_at: feedPosts.created_at,
     })
     .from(feedPosts)
-    .where(
-      and(eq(feedPosts.author_id, user.id), eq(feedPosts.is_draft, false))
-    )
+    .where(and(eq(feedPosts.author_id, user.id), eq(feedPosts.is_draft, false)))
     .orderBy(desc(feedPosts.published_at));
 
+  const taskCount = await db
+    .select({ count: count() })
+    .from(benchmarkTasks)
+    .where(eq(benchmarkTasks.author_id, user.id));
+
+  const postCount = posts.length;
+
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
-      <div className="flex flex-col items-center text-center">
-        <Avatar handle={user.handle} displayName={user.display_name} size="lg" />
-        <h1 className="mt-4 text-xl font-bold text-[#F4F4F5]">
-          {user.display_name}
-        </h1>
-        <p className="mt-1 text-sm text-[rgba(244,244,245,0.40)]">
-          @{user.handle}
-        </p>
+    <div className="max-w-2xl mx-auto">
+      <div className="h-32 bg-gradient-to-r from-[#6366F1]/20 via-[#A855F7]/20 to-[#6366F1]/10" />
+
+      <div className="px-4 pb-4 border-b border-white/[0.08]">
+        <div className="-mt-10 flex items-end justify-between">
+          <div className="ring-4 ring-[#09090B] rounded-full">
+            <Avatar handle={user.handle} displayName={user.display_name} size="lg" />
+          </div>
+          <Link
+            href={`/benchmarks/new`}
+            className="text-sm font-medium px-4 py-1.5 rounded-full border border-white/[0.14] text-[#F4F4F5] hover:bg-white/[0.04] transition-colors"
+          >
+            View Benchmarks
+          </Link>
+        </div>
+
+        <div className="mt-3">
+          <h1 className="text-xl font-bold text-[#F4F4F5]">{user.display_name}</h1>
+          <p className="text-[15px] text-[rgba(244,244,245,0.40)]">@{user.handle}</p>
+        </div>
+
         {user.bio && (
-          <p className="mt-3 text-sm text-[rgba(244,244,245,0.62)] max-w-md">
+          <p className="mt-2 text-[15px] text-[rgba(244,244,245,0.62)] leading-relaxed">
             {user.bio}
           </p>
         )}
-        {user.created_at && (
-          <p className="mt-2 text-xs text-[rgba(244,244,245,0.40)]">
-            Joined{" "}
-            {new Date(user.created_at).toLocaleDateString("en-US", {
-              month: "long",
-              year: "numeric",
-            })}
-          </p>
-        )}
+
+        <div className="mt-3 flex items-center gap-4 text-sm text-[rgba(244,244,245,0.40)]">
+          {user.created_at && (
+            <span className="flex items-center gap-1">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+              Joined {new Date(user.created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+            </span>
+          )}
+        </div>
+
+        <div className="mt-3 flex items-center gap-5 text-sm">
+          <span>
+            <span className="font-semibold text-[#F4F4F5]">{taskCount[0]?.count ?? 0}</span>
+            <span className="text-[rgba(244,244,245,0.40)]"> Benchmarks</span>
+          </span>
+          <span>
+            <span className="font-semibold text-[#F4F4F5]">{postCount}</span>
+            <span className="text-[rgba(244,244,245,0.40)]"> Posts</span>
+          </span>
+        </div>
       </div>
 
-      <div className="mt-8">
-        <h2 className="text-lg font-semibold text-[#F4F4F5] mb-4">
-          Published Posts
-        </h2>
+      <div>
         {posts.length === 0 ? (
-          <p className="text-sm text-[rgba(244,244,245,0.40)]">
-            No published posts yet.
-          </p>
-        ) : (
-          <div className="border border-white/[0.08] rounded-xl overflow-hidden">
-            {posts.map((row) => (
-              <FeedPostCard
-                key={row.id}
-                post={
-                  {
-                    id: row.id,
-                    author_id: row.author_id,
-                    task_id: row.task_id,
-                    body: row.body,
-                    agent_results: row.agent_results as FeedPost["agent_results"],
-                    is_draft: row.is_draft,
-                    published_at: row.published_at,
-                    created_at: row.created_at,
-                    author: user,
-                  } as FeedPost & { author: User }
-                }
-              />
-            ))}
+          <div className="py-12 text-center">
+            <p className="text-[15px] text-[rgba(244,244,245,0.40)]">No posts yet.</p>
           </div>
+        ) : (
+          posts.map((row) => (
+            <FeedPostCard
+              key={row.id}
+              post={{
+                id: row.id,
+                author_id: row.author_id,
+                task_id: row.task_id,
+                body: row.body,
+                agent_results: row.agent_results as AgentResult[],
+                is_draft: row.is_draft,
+                published_at: row.published_at,
+                created_at: row.created_at,
+                author: user,
+              } as FeedPost & { author: User }}
+            />
+          ))
         )}
       </div>
     </div>

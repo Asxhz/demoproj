@@ -141,7 +141,7 @@ export default async function PostDetailPage({
         <h2 className="px-4 pt-6 pb-2 text-sm font-semibold text-[#F4F4F5]">
           Comments
         </h2>
-        <CommentThread comments={commentsWithAuthor} postId={postId} />
+        <CommentThread initialComments={commentsWithAuthor} postId={postId} />
       </div>
     </div>
   );

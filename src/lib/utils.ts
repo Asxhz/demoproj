@@ -33,3 +33,14 @@ export function timeAgo(date: Date): string {
 export function generateId(prefix: string): string {
   return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
+
+export function fakeEngagement(postId: string): { likes: number; reposts: number; views: string; bookmarks: number; comments: number } {
+  const hash = simpleHash(postId);
+  return {
+    likes: 12 + (hash % 835),
+    reposts: 3 + (hash % 117),
+    views: ((1.2 + (hash % 44))).toFixed(1) + 'K',
+    bookmarks: 1 + (hash % 89),
+    comments: 1 + (hash % 48),
+  };
+}
