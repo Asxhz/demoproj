@@ -1,76 +1,194 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
-import { users, utraceSeedRuns } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { db, createSourceDb } from "@/db";
+import {
+  users,
+  benchmarkTasks,
+  benchmarkRuns,
+  feedPosts,
+  comments,
+  utraceSeedMarkers,
+} from "@/db/schema";
+import { eq, inArray } from "drizzle-orm";
 import { validateAdapterAuth, AdapterAuthError } from "@/lib/utrace/adapter-auth";
-import { createSeedPlan } from "@/lib/utrace/seed-plan";
-import { generateId } from "@/lib/utils";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { sessionId } = await validateAdapterAuth(request.headers, body);
+    await validateAdapterAuth(request.headers, body);
 
-    const { external_user_id } = body;
+    const {
+      session_id,
+      preview_id,
+      external_user_id,
+      seed_plan_id,
+      seed_plan_version,
+      clone_environment_id,
+      warm_environment_lease_id,
+    } = body as Record<string, string>;
 
-    if (!external_user_id) {
+    if (!external_user_id || !session_id || !preview_id) {
       return NextResponse.json(
-        { error: "external_user_id is required" },
+        { error: "external_user_id, session_id, and preview_id are required" },
         { status: 400 }
       );
     }
 
-    const existingUser = await db
+    const existing = await db
+      .select()
+      .from(utraceSeedMarkers)
+      .where(eq(utraceSeedMarkers.session_id, session_id))
+      .limit(1);
+
+    if (existing.length > 0) {
+      return NextResponse.json({
+        seeded: true,
+        external_user_id,
+        session_id,
+        seed_plan_id: existing[0].seed_plan_id,
+        seed_plan_version: existing[0].seed_plan_version,
+        clone_environment_id: clone_environment_id ?? "",
+        warm_environment_lease_id: warm_environment_lease_id ?? "",
+        preview_id,
+        seed_reference: `seed_${session_id}`,
+      });
+    }
+
+    const sourceUrl = process.env.SOURCE_DATABASE_READONLY_URL;
+    if (!sourceUrl) {
+      return NextResponse.json(
+        { error: "SOURCE_DATABASE_READONLY_URL not configured" },
+        { status: 500 }
+      );
+    }
+
+    const sourceDb = createSourceDb(sourceUrl);
+
+    const sourceUser = await sourceDb
       .select()
       .from(users)
       .where(eq(users.id, external_user_id))
       .limit(1);
 
-    if (!existingUser.length) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
+    if (!sourceUser.length) {
+      return NextResponse.json({ error: "User not found in source" }, { status: 404 });
     }
-
-    const user = existingUser[0];
 
     await db
       .insert(users)
-      .values({
-        id: user.id,
-        email: user.email,
-        display_name: user.display_name,
-        handle: user.handle,
-        avatar_seed: user.avatar_seed,
-        bio: user.bio,
-        password_hash: user.password_hash,
-      })
+      .values(sourceUser[0])
       .onConflictDoUpdate({
         target: users.id,
         set: {
-          display_name: user.display_name,
-          avatar_seed: user.avatar_seed,
-          bio: user.bio,
+          display_name: sourceUser[0].display_name,
+          handle: sourceUser[0].handle,
+          avatar_seed: sourceUser[0].avatar_seed,
+          bio: sourceUser[0].bio,
+          password_hash: sourceUser[0].password_hash,
+          email: sourceUser[0].email,
         },
       });
 
-    const seedPlan = createSeedPlan();
+    const sourceTasks = await sourceDb
+      .select()
+      .from(benchmarkTasks)
+      .where(eq(benchmarkTasks.author_id, external_user_id));
 
-    await db.insert(utraceSeedRuns).values({
-      id: generateId("seedrun"),
-      session_id: sessionId,
-      external_user_id,
-      seed_reference: seedPlan.seedReference,
-    });
+    if (sourceTasks.length > 0) {
+      const taskIds = sourceTasks.map((t) => t.id);
+
+      for (const task of sourceTasks) {
+        await db
+          .insert(benchmarkTasks)
+          .values(task)
+          .onConflictDoNothing({ target: benchmarkTasks.id });
+      }
+
+      const sourceRuns = await sourceDb
+        .select()
+        .from(benchmarkRuns)
+        .where(inArray(benchmarkRuns.task_id, taskIds));
+
+      for (const run of sourceRuns) {
+        await db
+          .insert(benchmarkRuns)
+          .values(run)
+          .onConflictDoNothing({ target: benchmarkRuns.id });
+      }
+    }
+
+    const sourcePosts = await sourceDb
+      .select()
+      .from(feedPosts)
+      .where(eq(feedPosts.author_id, external_user_id));
+
+    if (sourcePosts.length > 0) {
+      const postIds = sourcePosts.map((p) => p.id);
+
+      for (const post of sourcePosts) {
+        await db
+          .insert(feedPosts)
+          .values(post)
+          .onConflictDoNothing({ target: feedPosts.id });
+      }
+
+      const sourceComments = await sourceDb
+        .select()
+        .from(comments)
+        .where(inArray(comments.post_id, postIds));
+
+      if (sourceComments.length > 0) {
+        const commentAuthorIds = [
+          ...new Set(
+            sourceComments
+              .map((c) => c.author_id)
+              .filter((id): id is string => id !== null && id !== external_user_id)
+          ),
+        ];
+
+        if (commentAuthorIds.length > 0) {
+          const commentAuthors = await sourceDb
+            .select()
+            .from(users)
+            .where(inArray(users.id, commentAuthorIds));
+
+          for (const author of commentAuthors) {
+            await db
+              .insert(users)
+              .values(author)
+              .onConflictDoNothing({ target: users.id });
+          }
+        }
+
+        for (const comment of sourceComments) {
+          await db
+            .insert(comments)
+            .values(comment)
+            .onConflictDoNothing({ target: comments.id });
+        }
+      }
+    }
+
+    await db
+      .insert(utraceSeedMarkers)
+      .values({
+        session_id,
+        preview_id,
+        external_user_id,
+        seed_plan_id: seed_plan_id ?? "default",
+        seed_plan_version: seed_plan_version ?? "v1",
+      })
+      .onConflictDoNothing({ target: utraceSeedMarkers.session_id });
 
     return NextResponse.json({
       seeded: true,
-      user_id: user.id,
-      session_id: sessionId,
-      seed_plan_id: seedPlan.planId,
-      seed_reference: seedPlan.seedReference,
-      version: seedPlan.version,
+      external_user_id,
+      session_id,
+      seed_plan_id: seed_plan_id ?? "default",
+      seed_plan_version: seed_plan_version ?? "v1",
+      clone_environment_id: clone_environment_id ?? "",
+      warm_environment_lease_id: warm_environment_lease_id ?? "",
+      preview_id,
+      seed_reference: `seed_${session_id}`,
     });
   } catch (error) {
     if (error instanceof AdapterAuthError) {

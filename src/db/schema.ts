@@ -60,10 +60,11 @@ export const sessions = pgTable("sessions", {
   created_at: timestamp("created_at").defaultNow(),
 });
 
-export const utraceSeedRuns = pgTable("utrace_seed_runs", {
-  id: text("id").primaryKey(),
-  session_id: text("session_id").notNull(),
+export const utraceSeedMarkers = pgTable("__utrace_seed_markers", {
+  session_id: text("session_id").primaryKey(),
+  preview_id: text("preview_id").notNull(),
   external_user_id: text("external_user_id").notNull(),
+  seed_plan_id: text("seed_plan_id").notNull(),
+  seed_plan_version: text("seed_plan_version").notNull(),
   seeded_at: timestamp("seeded_at").defaultNow(),
-  seed_reference: text("seed_reference"),
 });

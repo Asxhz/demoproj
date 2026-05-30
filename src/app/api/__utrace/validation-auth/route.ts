@@ -7,16 +7,16 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     await validateAdapterAuth(request.headers, body);
 
-    const { token } = body;
+    const { validation_token } = body as Record<string, string>;
 
-    if (!token || typeof token !== "string") {
+    if (!validation_token || typeof validation_token !== "string") {
       return NextResponse.json(
-        { error: "Token is required" },
+        { error: "validation_token is required" },
         { status: 400 }
       );
     }
 
-    const entry = tokenStore.get(token);
+    const entry = tokenStore.get(validation_token);
 
     if (!entry) {
       return NextResponse.json(
@@ -26,20 +26,20 @@ export async function POST(request: NextRequest) {
     }
 
     if (entry.expiresAt < new Date()) {
-      tokenStore.delete(token);
+      tokenStore.delete(validation_token);
       return NextResponse.json(
         { error: "Token has expired" },
         { status: 401 }
       );
     }
 
-    tokenStore.delete(token);
+    tokenStore.delete(validation_token);
 
     return NextResponse.json({
-      valid: true,
+      authenticated: true,
+      browser_authenticated: true,
       session_id: entry.sessionId,
-      client_id: entry.clientId,
-      authenticated_at: new Date().toISOString(),
+      preview_id: entry.previewId,
     });
   } catch (error) {
     if (error instanceof AdapterAuthError) {

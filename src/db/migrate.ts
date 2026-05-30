@@ -1,10 +1,10 @@
-import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
+import postgres from "postgres";
+import { drizzle } from "drizzle-orm/postgres-js";
 import { sql } from "drizzle-orm";
 import { readFileSync } from "fs";
 import { join } from "path";
 
-const connection = neon(process.env.DATABASE_URL!);
+const connection = postgres(process.env.DATABASE_URL!);
 const db = drizzle(connection);
 
 const DROP_TABLES = [
@@ -13,7 +13,7 @@ const DROP_TABLES = [
   "benchmark_runs",
   "benchmark_tasks",
   "sessions",
-  "utrace_seed_runs",
+  "__utrace_seed_markers",
   "users",
 ];
 

@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { utraceSeedRuns } from "@/db/schema";
+import { utraceSeedMarkers } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { validateAdapterAuth, AdapterAuthError } from "@/lib/utrace/adapter-auth";
-import { generateId } from "@/lib/utils";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     await validateAdapterAuth(request.headers, body);
 
-    const { session_id } = body;
+    const { session_id, warm_environment_lease_id } = body as Record<string, string>;
 
     if (!session_id) {
       return NextResponse.json(
@@ -20,13 +19,13 @@ export async function POST(request: NextRequest) {
     }
 
     await db
-      .delete(utraceSeedRuns)
-      .where(eq(utraceSeedRuns.session_id, session_id));
+      .delete(utraceSeedMarkers)
+      .where(eq(utraceSeedMarkers.session_id, session_id));
 
     return NextResponse.json({
       reset: true,
       session_id,
-      warm_environment_lease_id: generateId("lease"),
+      warm_environment_lease_id: warm_environment_lease_id ?? "",
     });
   } catch (error) {
     if (error instanceof AdapterAuthError) {

@@ -1,10 +1,10 @@
-import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
+import postgres from "postgres";
+import { drizzle } from "drizzle-orm/postgres-js";
 import { hashSync } from "bcryptjs";
 import * as schema from "./schema";
 
-const sql = neon(process.env.DATABASE_URL!);
-const db = drizzle(sql, { schema });
+const connection = postgres(process.env.DATABASE_URL!);
+const db = drizzle(connection, { schema });
 
 const PASSWORD = hashSync("claudex-demo-2026", 10);
 

@@ -4,6 +4,7 @@ import { validateAdapterAuth, AdapterAuthError } from "@/lib/utrace/adapter-auth
 
 type TokenEntry = {
   sessionId: string;
+  previewId: string;
   clientId: string;
   expiresAt: Date;
 };
@@ -22,18 +23,23 @@ export async function POST(request: NextRequest) {
       body
     );
 
-    const token = randomBytes(32).toString("hex");
+    const previewId = (body as Record<string, string>).preview_id ?? "";
+    const validationToken = randomBytes(32).toString("hex");
     const expiresAt = new Date(Date.now() + TOKEN_TTL_MS);
+    const expiresAtEpoch = Math.floor(expiresAt.getTime() / 1000);
 
-    tokenStore.set(token, {
+    tokenStore.set(validationToken, {
       sessionId,
+      previewId,
       clientId,
       expiresAt,
     });
 
     return NextResponse.json({
-      token,
-      expires_at: expiresAt.toISOString(),
+      session_id: sessionId,
+      preview_id: previewId,
+      validation_token: validationToken,
+      expires_at: expiresAtEpoch,
     });
   } catch (error) {
     if (error instanceof AdapterAuthError) {

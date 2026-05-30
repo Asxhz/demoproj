@@ -8,15 +8,20 @@ export type AdapterAuthResult = {
 
 const seenNonces = new Set<string>();
 
+function canonicalJson(obj: unknown): string {
+  if (obj === null || typeof obj !== "object") return JSON.stringify(obj);
+  if (Array.isArray(obj)) return "[" + obj.map(canonicalJson).join(",") + "]";
+  const sorted = Object.keys(obj as Record<string, unknown>).sort();
+  const entries = sorted.map(
+    (k) => JSON.stringify(k) + ":" + canonicalJson((obj as Record<string, unknown>)[k])
+  );
+  return "{" + entries.join(",") + "}";
+}
+
 export async function validateAdapterAuth(
   headers: Headers,
   body: Record<string, unknown>
 ): Promise<AdapterAuthResult> {
-  const sandboxMode = process.env.UTRACE_SANDBOX_MODE;
-  if (sandboxMode !== "true") {
-    throw new AdapterAuthError("Sandbox mode is not enabled", 403);
-  }
-
   const clientId = headers.get("x-utrace-client-id");
   const sessionId = headers.get("x-utrace-session-id");
   const purpose = headers.get("x-utrace-purpose");
@@ -24,12 +29,12 @@ export async function validateAdapterAuth(
   const nonce = headers.get("x-utrace-nonce");
   const signature = headers.get("x-utrace-seed-signature");
 
-  if (!clientId || !sessionId || !purpose || !expiresAt || !nonce || !signature) {
+  if (!purpose || !expiresAt || !nonce || !signature) {
     throw new AdapterAuthError("Missing required adapter headers", 400);
   }
 
-  const expiry = new Date(expiresAt);
-  if (isNaN(expiry.getTime()) || expiry < new Date()) {
+  const expiryEpoch = Number(expiresAt);
+  if (isNaN(expiryEpoch) || expiryEpoch <= Math.floor(Date.now() / 1000)) {
     throw new AdapterAuthError("Request has expired", 401);
   }
 
@@ -37,15 +42,15 @@ export async function validateAdapterAuth(
     throw new AdapterAuthError("Nonce already used", 401);
   }
 
-  const secret = process.env.UTRACE_SANDBOX_ADAPTER_SHARED_SECRET;
+  const secret = process.env.UTRACE_ADAPTER_SECRET;
   if (!secret) {
     throw new AdapterAuthError("Adapter secret not configured", 500);
   }
 
-  const canonicalBody = JSON.stringify(body, Object.keys(body).sort());
-  const payload = `${purpose}${expiresAt}${nonce}${canonicalBody}`;
+  const canonicalPayload = canonicalJson(body);
+  const message = `${purpose}.${expiresAt}.${nonce}.${canonicalPayload}`;
   const expectedSignature = createHmac("sha256", secret)
-    .update(payload)
+    .update(message)
     .digest("hex");
 
   const sigBuf = Buffer.from(signature, "hex");
@@ -56,7 +61,11 @@ export async function validateAdapterAuth(
 
   seenNonces.add(nonce);
 
-  return { clientId, sessionId, purpose };
+  return {
+    clientId: clientId ?? body.client_id as string ?? "",
+    sessionId: sessionId ?? body.session_id as string ?? "",
+    purpose,
+  };
 }
 
 export class AdapterAuthError extends Error {
