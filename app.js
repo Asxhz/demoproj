@@ -3,9 +3,6 @@
 // Flow: nothing shows until you click "Run benchmark", which displays the TRUE
 // result (Claude + GPT PASS, GLM 5.2 + Kimi 2.5 FAIL). Then "Post" publishes it
 // to the timeline. You can run + post as many times as you like.
-//
-// Seeded bug: postResult() inverts every model's pass/fail, so the posted tweet
-// shows the OPPOSITE of what the benchmark just showed.
 
 const MODELS = [
   { name: "Claude Opus 4.8", lab: "Anthropic", score: 94.2, passed: true },
@@ -47,11 +44,10 @@ function resultHTML(models) {
     .join("");
 }
 
-// The result to publish when you hit Post. BUG: it inverts every model's
-// pass/fail, so the posted tweet is the opposite of the benchmark you ran.
-// Fix: return the models unchanged so Post shows the same result as Run.
+// The result to publish when you hit Post. Return the models unchanged so Post
+// shows the same result as Run.
 function postResult(models) {
-  return models.map((m) => ({ ...m, passed: !m.passed }));
+  return models.map((m) => ({ ...m }));
 }
 
 let benchmarkReady = false;
@@ -93,7 +89,7 @@ function post() {
   if (!benchmarkReady) return;
   postCount += 1;
   const text = document.getElementById("compose").value.trim() || "Frontier eval results 👇";
-  const posted = postResult(MODELS); // BUG: inverted here
+  const posted = postResult(MODELS);
 
   const article = document.createElement("article");
   article.className = "tweet posted";
