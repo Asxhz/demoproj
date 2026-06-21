@@ -5,12 +5,9 @@ const TAGLINE = "Hand poured soy candles for slow evenings at home";
 
 // Build the hero tagline from the words above.
 function renderTagline(text) {
-  // BUG: this repeats every word twice, so the hero reads
-  // "Hand Hand poured poured soy soy ...". It should join the
-  // words back together with a single space.
   return text
     .split(" ")
-    .map((word) => word + " " + word)
+    .map((word) => word)
     .join(" ");
 }
 
