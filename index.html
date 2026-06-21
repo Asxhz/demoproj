@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lumen — Hand-poured soy candles</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="nav">
+      <div class="brand">Lumen</div>
+      <nav>
+        <a href="#shop">Shop</a>
+        <a href="#story">Our story</a>
+        <a href="#shop" class="cta-link">Cart (0)</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <p class="eyebrow">New — Winter 2026 collection</p>
+        <h1>Light that feels like home.</h1>
+        <!-- This subtitle is rendered by app.js — see renderTagline(). -->
+        <p id="tagline" class="tagline">Loading…</p>
+        <a href="#shop" class="cta">Shop the collection</a>
+      </section>
+
+      <section id="shop" class="grid">
+        <article class="card">
+          <div class="swatch swatch-amber"></div>
+          <h3>Amber &amp; Oak</h3>
+          <p class="price" data-cents="3200">$0.00</p>
+          <button class="add">Add to cart</button>
+        </article>
+        <article class="card">
+          <div class="swatch swatch-sage"></div>
+          <h3>Sage &amp; Sea Salt</h3>
+          <p class="price" data-cents="3400">$0.00</p>
+          <button class="add">Add to cart</button>
+        </article>
+        <article class="card">
+          <div class="swatch swatch-rose"></div>
+          <h3>Rose &amp; Vetiver</h3>
+          <p class="price" data-cents="3600">$0.00</p>
+          <button class="add">Add to cart</button>
+        </article>
+      </section>
+
+      <section id="story" class="story">
+        <h2>Made slowly, in small batches.</h2>
+        <p>
+          Every Lumen candle is hand-poured from 100% soy wax and a cotton wick,
+          scented with phthalate-free oils. Burn time: 50+ hours.
+        </p>
+      </section>
+    </main>
+
+    <footer>© 2026 Lumen Candle Co. · hello@lumen.example</footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>
