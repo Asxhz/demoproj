@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Claudex
 
-## Getting Started
+A project platform with role-based accounts, real auth, and connected tools.
+Founders run the workspace, customers ship the work, and GitHub, Discord, and
+Browserbase plug in directly.
 
-First, run the development server:
+## Stack
+
+- Next.js 16 (App Router) + React 19
+- Drizzle ORM on Postgres (Neon)
+- DB-backed session auth (bcrypt), no third-party auth dependency
+
+## Features
+
+- **Auth + roles** — email/password signup and login, `founder` and `customer` roles.
+- **Projects** — create projects, link a GitHub repo, manage members.
+- **Tasks** — assign, prioritise, and move tasks across a board.
+- **Dashboard** — live analytics over projects and tasks (founders see all).
+- **Tools**
+  - **GitHub** — OAuth connect, list repos, attach to projects.
+  - **Discord** — interactions bot (`/signup`, `/join`) plus founder-triggered
+    meeting events and invites.
+  - **Browserbase** — launch cloud browser sessions on demand.
+- **Notifications** — real, DB-backed inbox.
+
+Every integration degrades gracefully: if its env vars are missing the UI tells
+you exactly which ones to set instead of crashing.
+
+## Setup
 
 ```bash
+cp .env.example .env.local   # fill in DATABASE_URL + secrets
+npx tsx --env-file=.env.local src/db/migrate.ts   # create tables
+npx tsx --env-file=.env.local src/db/seed.ts      # demo founder + customer
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Demo logins
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `founder@claudex.dev` / `claudex-demo-2026`
+- `customer@claudex.dev` / `claudex-demo-2026`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Integration setup
 
-## Learn More
+| Tool | Env vars | Notes |
+| --- | --- | --- |
+| GitHub | `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | Callback: `<APP_URL>/api/integrations/github/callback` |
+| Discord | `DISCORD_BOT_TOKEN`, `DISCORD_PUBLIC_KEY`, `DISCORD_GUILD_ID`, `DISCORD_VOICE_CHANNEL_ID` | Interactions URL: `<APP_URL>/api/integrations/discord/interactions` |
+| Browserbase | `BROWSERBASE_API_KEY`, `BROWSERBASE_PROJECT_ID` | |
 
-To learn more about Next.js, take a look at the following resources:
+## Verify
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run typecheck
+npm run build
+```

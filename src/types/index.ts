@@ -1,57 +1,71 @@
-export type AgentResult = {
-  agent_name: string;
-  result: "passed" | "failed" | "partial";
-  explanation: string;
-};
+export type Role = "founder" | "customer";
 
-export type User = {
+export type SessionUser = {
   id: string;
-  email: string | null;
+  email: string;
   display_name: string;
   handle: string;
+  role: Role;
   avatar_seed: string | null;
   bio: string | null;
   created_at: Date | null;
 };
 
-export type BenchmarkTask = {
+export type Project = {
   id: string;
-  author_id: string | null;
+  owner_id: string;
+  name: string;
+  slug: string;
+  description: string;
+  status: "active" | "archived";
+  repo_full_name: string | null;
+  repo_url: string | null;
+  created_at: Date | null;
+};
+
+export type TaskStatus = "todo" | "doing" | "done";
+export type TaskPriority = "low" | "med" | "high";
+
+export type Task = {
+  id: string;
+  project_id: string;
   title: string;
   description: string;
-  difficulty: string | null;
-  tags: string[] | null;
+  status: TaskStatus;
+  priority: TaskPriority;
+  assignee_id: string | null;
+  created_by: string | null;
   created_at: Date | null;
 };
 
-export type BenchmarkRun = {
+export type Provider = "github" | "discord" | "browserbase";
+
+export type Integration = {
   id: string;
-  task_id: string | null;
-  agent_name: string;
-  agent_model: string | null;
-  result: string;
-  explanation: string;
-  duration_ms: number | null;
-  tokens_used: number | null;
-  code_diff: string | null;
-  created_at: Date | null;
+  user_id: string;
+  provider: Provider;
+  access_token: string | null;
+  account_label: string | null;
+  meta: Record<string, unknown> | null;
+  connected_at: Date | null;
 };
 
-export type FeedPost = {
+export type Notification = {
   id: string;
-  author_id: string | null;
-  task_id: string | null;
+  user_id: string;
+  type: string;
+  title: string;
   body: string;
-  agent_results: AgentResult[];
-  is_draft: boolean | null;
-  published_at: Date | null;
+  link: string | null;
+  read: boolean;
   created_at: Date | null;
 };
 
-export type Comment = {
-  id: string;
-  post_id: string | null;
-  author_id: string | null;
-  body: string;
-  created_at: Date | null;
+export type GithubRepo = {
+  full_name: string;
+  html_url: string;
+  description: string | null;
+  private: boolean;
+  language: string | null;
+  updated_at: string;
 };

@@ -14,14 +14,9 @@ function getDb() {
   return _db;
 }
 
+// Lazy proxy so the connection string is only read at first query, not at import.
 export const db = new Proxy({} as ReturnType<typeof createDb>, {
   get(_target, prop) {
     return (getDb() as unknown as Record<string | symbol, unknown>)[prop];
   },
 });
-
-export function createSourceDb(url: string) {
-  const client = postgres(url, { max: 5 });
-  const d = drizzle(client, { schema });
-  return { db: d, close: () => client.end() };
-}

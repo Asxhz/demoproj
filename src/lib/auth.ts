@@ -1,13 +1,15 @@
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { sessions, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { generateId } from "./utils";
+import type { Role, SessionUser } from "@/types";
 
 const COOKIE_NAME = "claudex_session";
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
 
-export async function getCurrentUser() {
+export async function getCurrentUser(): Promise<SessionUser | null> {
   const cookieStore = await cookies();
   const sessionId = cookieStore.get(COOKIE_NAME)?.value;
   if (!sessionId) return null;
@@ -18,9 +20,11 @@ export async function getCurrentUser() {
       email: users.email,
       display_name: users.display_name,
       handle: users.handle,
+      role: users.role,
       avatar_seed: users.avatar_seed,
       bio: users.bio,
       created_at: users.created_at,
+      expires_at: sessions.expires_at,
     })
     .from(sessions)
     .innerJoin(users, eq(sessions.user_id, users.id))
@@ -28,16 +32,26 @@ export async function getCurrentUser() {
     .limit(1);
 
   if (!result.length) return null;
+  const row = result[0];
+  if (row.expires_at < new Date()) return null;
 
-  const session = await db
-    .select({ expires_at: sessions.expires_at })
-    .from(sessions)
-    .where(eq(sessions.id, sessionId))
-    .limit(1);
+  const { expires_at: _e, ...user } = row;
+  void _e;
+  return { ...user, role: user.role as Role };
+}
 
-  if (!session.length || session[0].expires_at < new Date()) return null;
+// Redirect to /login if not signed in.
+export async function requireUser(): Promise<SessionUser> {
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+  return user;
+}
 
-  return result[0];
+// Only founders pass; customers bounce to /dashboard.
+export async function requireFounder(): Promise<SessionUser> {
+  const user = await requireUser();
+  if (user.role !== "founder") redirect("/dashboard");
+  return user;
 }
 
 export async function createSession(userId: string): Promise<string> {

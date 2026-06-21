@@ -12,56 +12,27 @@ export async function POST(request: NextRequest) {
     if (!email || !password) {
       return NextResponse.json(
         { error: "Email and password are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const result = await db
       .select()
       .from(users)
-      .where(eq(users.email, email))
+      .where(eq(users.email, String(email).toLowerCase().trim()))
       .limit(1);
 
-    if (!result.length) {
-      return NextResponse.json(
-        { error: "Invalid email or password" },
-        { status: 401 }
-      );
-    }
-
     const user = result[0];
-
-    if (!user.password_hash) {
+    if (!user || !(await bcrypt.compare(password, user.password_hash))) {
       return NextResponse.json(
         { error: "Invalid email or password" },
-        { status: 401 }
-      );
-    }
-
-    const valid = await bcrypt.compare(password, user.password_hash);
-
-    if (!valid) {
-      return NextResponse.json(
-        { error: "Invalid email or password" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
     await createSession(user.id);
-
-    return NextResponse.json({
-      id: user.id,
-      email: user.email,
-      display_name: user.display_name,
-      handle: user.handle,
-      avatar_seed: user.avatar_seed,
-      bio: user.bio,
-      created_at: user.created_at,
-    });
+    return NextResponse.json({ ok: true, role: user.role });
   } catch {
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

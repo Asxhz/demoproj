@@ -8,17 +8,27 @@ export function simpleHash(str: string): number {
   return Math.abs(hash);
 }
 
-export function avatarGradient(handle: string): string {
-  const hash = simpleHash(handle);
+export function avatarGradient(seed: string): string {
+  const hash = simpleHash(seed);
   const hue1 = hash % 360;
   const hue2 = (hash * 7) % 360;
-  return `linear-gradient(135deg, hsl(${hue1}, 70%, 60%), hsl(${hue2}, 70%, 50%))`;
+  return `linear-gradient(135deg, hsl(${hue1}, 70%, 55%), hsl(${hue2}, 70%, 45%))`;
 }
 
-export function timeAgo(date: Date): string {
-  const now = new Date();
-  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+export function initials(name: string): string {
+  return name
+    .split(" ")
+    .map((w) => w[0])
+    .filter(Boolean)
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
 
+export function timeAgo(date: Date | string | null): string {
+  if (!date) return "";
+  const d = typeof date === "string" ? new Date(date) : date;
+  const seconds = Math.floor((Date.now() - d.getTime()) / 1000);
   if (seconds < 60) return "just now";
   const minutes = Math.floor(seconds / 60);
   if (minutes < 60) return `${minutes}m ago`;
@@ -26,30 +36,18 @@ export function timeAgo(date: Date): string {
   if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
   if (days < 30) return `${days}d ago`;
-
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 export function generateId(prefix: string): string {
   return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
-export function fakeCommentEngagement(commentId: string): { likes: number; reposts: number; replies: number } {
-  const hash = simpleHash(commentId);
-  return {
-    likes: (hash % 42),
-    reposts: (hash % 8),
-    replies: (hash % 5),
-  };
-}
-
-export function fakeEngagement(postId: string): { likes: number; reposts: number; views: string; bookmarks: number; comments: number } {
-  const hash = simpleHash(postId);
-  return {
-    likes: 12 + (hash % 835),
-    reposts: 3 + (hash % 117),
-    views: ((1.2 + (hash % 44))).toFixed(1) + 'K',
-    bookmarks: 1 + (hash % 89),
-    comments: 1 + (hash % 48),
-  };
+export function slugify(input: string): string {
+  return input
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 48);
 }

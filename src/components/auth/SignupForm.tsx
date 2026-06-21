@@ -1,153 +1,85 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Button from "@/components/ui/Button";
+import { useState } from "react";
+import Link from "next/link";
 
 export default function SignupForm() {
   const router = useRouter();
-  const [displayName, setDisplayName] = useState("");
-  const [handle, setHandle] = useState("");
+  const [display_name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.SyntheticEvent) {
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (loading) return;
-
+    setError("");
     setLoading(true);
-    setError(null);
-
-    try {
-      const res = await fetch("/api/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          display_name: displayName,
-          handle,
-          email,
-          password,
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        throw new Error(data?.error ?? "Signup failed");
-      }
-
-      router.push("/dashboard");
-      router.refresh();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
-    } finally {
+    const res = await fetch("/api/auth/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ display_name, email, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error || "Signup failed");
       setLoading(false);
+      return;
     }
+    router.push("/dashboard");
+    router.refresh();
   }
 
   return (
-    <div className="w-full max-w-sm mx-auto">
-      <div className="bg-[#0e0f10] border border-[#2f3336] rounded-lg p-6">
-        <h2 className="text-lg font-medium text-[#e7e9ea]">Create your account</h2>
-        <p className="mt-1 text-sm text-[#536471]">
-          Join Claudex and start benchmarking
-        </p>
-
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-          <div>
-            <label htmlFor="signup-name" className="block text-sm font-medium text-[#8b8d93] mb-1.5">
-              Display name
-            </label>
-            <input
-              id="signup-name"
-              type="text"
-              required
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              className="w-full rounded-lg border border-[#2f3336] bg-black px-3 py-2 text-sm text-[#e7e9ea] placeholder:text-[#536471] focus:outline-none focus:border-[#1d9bf0]/50 transition-colors duration-150"
-              placeholder="Jane Doe"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="signup-handle" className="block text-sm font-medium text-[#8b8d93] mb-1.5">
-              Handle
-            </label>
-            <input
-              id="signup-handle"
-              type="text"
-              required
-              value={handle}
-              onChange={(e) => setHandle(e.target.value)}
-              className="w-full rounded-lg border border-[#2f3336] bg-black px-3 py-2 text-sm text-[#e7e9ea] placeholder:text-[#536471] focus:outline-none focus:border-[#1d9bf0]/50 transition-colors duration-150"
-              placeholder="janedoe"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="signup-email" className="block text-sm font-medium text-[#8b8d93] mb-1.5">
-              Email
-            </label>
-            <input
-              id="signup-email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg border border-[#2f3336] bg-black px-3 py-2 text-sm text-[#e7e9ea] placeholder:text-[#536471] focus:outline-none focus:border-[#1d9bf0]/50 transition-colors duration-150"
-              placeholder="you@example.com"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="signup-password" className="block text-sm font-medium text-[#8b8d93] mb-1.5">
-              Password
-            </label>
-            <input
-              id="signup-password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-[#2f3336] bg-black px-3 py-2 text-sm text-[#e7e9ea] placeholder:text-[#536471] focus:outline-none focus:border-[#1d9bf0]/50 transition-colors duration-150"
-              placeholder="********"
-            />
-          </div>
-
-          {error && <p className="text-xs text-[#EF4444]">{error}</p>}
-
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? (
-              <>
-                <svg
-                  className="animate-spin -ml-1 mr-2 h-4 w-4"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                  />
-                </svg>
-                Creating account...
-              </>
-            ) : (
-              "Sign up"
-            )}
-          </Button>
-        </form>
+    <form onSubmit={submit} className="space-y-4">
+      <div>
+        <label className="block text-[13px] text-[#8b8d93] mb-1.5">Name</label>
+        <input
+          value={display_name}
+          onChange={(e) => setName(e.target.value)}
+          required
+          className="w-full rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2.5 text-[15px] text-[#e7e9ea]"
+          placeholder="Ada Lovelace"
+        />
       </div>
-    </div>
+      <div>
+        <label className="block text-[13px] text-[#8b8d93] mb-1.5">Email</label>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          className="w-full rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2.5 text-[15px] text-[#e7e9ea]"
+          placeholder="you@company.com"
+        />
+      </div>
+      <div>
+        <label className="block text-[13px] text-[#8b8d93] mb-1.5">Password</label>
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          minLength={8}
+          className="w-full rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2.5 text-[15px] text-[#e7e9ea]"
+          placeholder="At least 8 characters"
+        />
+      </div>
+      {error && <p className="text-[13px] text-[#EF4444]">{error}</p>}
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white font-medium rounded-full px-4 py-2.5 transition-colors disabled:opacity-50 cursor-pointer"
+      >
+        {loading ? "Creating account" : "Create account"}
+      </button>
+      <p className="text-[13px] text-[#536471] text-center">
+        Have an account?{" "}
+        <Link href="/login" className="text-[#1d9bf0] hover:underline">
+          Log in
+        </Link>
+      </p>
+    </form>
   );
 }

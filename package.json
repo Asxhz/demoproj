@@ -7,8 +7,9 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "test:utrace": "tsx tests/utrace/run.ts",
-    "verify": "npm run typecheck && npm run test:utrace && npm run build"
+    "db:migrate": "tsx --env-file=.env.local src/db/migrate.ts",
+    "db:seed": "tsx --env-file=.env.local src/db/seed.ts",
+    "verify": "npm run typecheck && npm run build"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
