@@ -24,11 +24,7 @@ function composite(m) {
 
 // Rank models best-first by composite score.
 function rankModels(models) {
-  // BUG: this sorts ASCENDING, so the weakest models float to the top and get
-  // crowned the winner. It briefly looks right (Claude/GPT lead while running),
-  // then the final ranking flips and GLM 5.2 / Kimi 2.5 wrongly "win".
-  // Fix: sort descending — b.composite - a.composite.
-  return [...models].sort((a, b) => composite(a) - composite(b));
+  return [...models].sort((a, b) => composite(b) - composite(a));
 }
 
 function renderRows(ranked) {
@@ -91,7 +87,6 @@ function runBenchmark() {
     if (i > steps.length) {
       clearInterval(tick);
       status.textContent = "Done. Final ranking:";
-      // BUG bites here: rankModels sorts ascending → wrong winner.
       const finalRanked = rankModels(MODELS);
       renderRows(finalRanked);
       setWinner(finalRanked);
