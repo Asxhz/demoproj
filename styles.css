@@ -1,9 +1,12 @@
 :root {
-  --bg: #faf7f2;
-  --ink: #2b2622;
-  --muted: #8a8178;
-  --accent: #c2703d;
-  --card: #ffffff;
+  --bg: #0b0d12;
+  --panel: #141821;
+  --ink: #e8ecf3;
+  --muted: #9aa4b2;
+  --accent: #5b8cff;
+  --accent-2: #8ab0ff;
+  --gold: #f5c451;
+  --line: #232938;
 }
 
 * { box-sizing: border-box; }
@@ -12,7 +15,9 @@ body {
   margin: 0;
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   color: var(--ink);
-  background: var(--bg);
+  background:
+    radial-gradient(50rem 30rem at 50% -8%, rgba(91, 140, 255, 0.16), transparent 60%),
+    var(--bg);
   line-height: 1.5;
 }
 
@@ -20,94 +25,81 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 32px;
-  border-bottom: 1px solid #ece5db;
+  padding: 18px 32px;
+  border-bottom: 1px solid var(--line);
 }
-.brand { font-weight: 700; font-size: 22px; letter-spacing: 0.5px; }
-.nav nav a {
-  margin-left: 22px;
-  text-decoration: none;
-  color: var(--muted);
-  font-size: 14px;
-}
+.brand { font-weight: 800; font-size: 20px; letter-spacing: 0.3px; }
+.nav nav a { margin-left: 22px; text-decoration: none; color: var(--muted); font-size: 14px; }
 .nav nav a:hover { color: var(--ink); }
-.cta-link { color: var(--accent) !important; font-weight: 600; }
+.cta-link { color: var(--accent-2) !important; font-weight: 700; }
 
-.hero {
-  text-align: center;
-  padding: 96px 24px 72px;
-  background:
-    radial-gradient(40rem 24rem at 50% -10%, rgba(194, 112, 61, 0.12), transparent 60%);
-}
-.eyebrow {
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  font-size: 12px;
-  color: var(--accent);
-  margin: 0 0 12px;
-}
-.hero h1 {
-  font-size: clamp(34px, 6vw, 60px);
-  margin: 0 0 14px;
-  letter-spacing: -1px;
-}
-.tagline { font-size: 18px; color: var(--muted); margin: 0 0 28px; }
+.hero { text-align: center; padding: 84px 24px 56px; max-width: 760px; margin: 0 auto; }
+.eyebrow { text-transform: uppercase; letter-spacing: 2px; font-size: 12px; color: var(--accent-2); margin: 0 0 12px; }
+.hero h1 { font-size: clamp(34px, 6vw, 58px); margin: 0 0 14px; letter-spacing: -1px; }
+.tagline { font-size: 18px; color: var(--muted); margin: 0 0 26px; }
+
 .cta {
   display: inline-block;
   background: var(--accent);
   color: #fff;
-  padding: 13px 26px;
+  border: 0;
+  padding: 13px 28px;
   border-radius: 999px;
-  text-decoration: none;
-  font-weight: 600;
-}
-.cta:hover { filter: brightness(1.06); }
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 24px;
-  max-width: 980px;
-  margin: 0 auto;
-  padding: 48px 24px;
-}
-.card {
-  background: var(--card);
-  border: 1px solid #ece5db;
-  border-radius: 16px;
-  padding: 18px;
-  text-align: center;
-}
-.card h3 { margin: 14px 0 4px; font-size: 18px; }
-.swatch { height: 150px; border-radius: 12px; }
-.swatch-amber { background: linear-gradient(160deg, #e6b07a, #c2703d); }
-.swatch-sage  { background: linear-gradient(160deg, #b9c7a6, #7f9468); }
-.swatch-rose  { background: linear-gradient(160deg, #e4b1b1, #b56b73); }
-.price { color: var(--muted); margin: 0 0 14px; }
-.add {
-  background: transparent;
-  border: 1px solid var(--accent);
-  color: var(--accent);
-  padding: 9px 18px;
-  border-radius: 999px;
+  font-weight: 700;
+  font-size: 15px;
   cursor: pointer;
-  font-weight: 600;
+  box-shadow: 0 14px 40px -12px rgba(91, 140, 255, 0.8);
 }
-.add:hover { background: var(--accent); color: #fff; }
+.cta:hover { filter: brightness(1.08); }
+.cta:disabled { opacity: 0.55; cursor: progress; }
+.run-status { min-height: 20px; margin: 16px 0 0; color: var(--accent-2); font-size: 14px; }
 
-.story {
-  max-width: 640px;
-  margin: 0 auto;
-  padding: 24px 24px 80px;
-  text-align: center;
-}
-.story h2 { font-size: 28px; margin: 0 0 12px; }
-.story p { color: var(--muted); }
-
-footer {
-  text-align: center;
-  padding: 28px;
+.board { max-width: 900px; margin: 0 auto; padding: 24px; }
+.board-head { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.board-head h2 { margin: 0; font-size: 22px; }
+.winner-badge {
+  background: rgba(245, 196, 81, 0.14);
+  color: var(--gold);
+  border: 1px solid rgba(245, 196, 81, 0.4);
+  padding: 5px 12px;
+  border-radius: 999px;
   font-size: 13px;
-  color: var(--muted);
-  border-top: 1px solid #ece5db;
+  font-weight: 700;
 }
+.hidden { display: none; }
+
+.leaderboard {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.leaderboard th, .leaderboard td { padding: 13px 14px; text-align: right; font-variant-numeric: tabular-nums; }
+.leaderboard th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--line); }
+.leaderboard th:nth-child(2), .leaderboard td.model { text-align: left; }
+.leaderboard th:first-child, .leaderboard td.rank { text-align: center; width: 44px; color: var(--muted); }
+.row td { border-bottom: 1px solid var(--line); }
+.row:last-child td { border-bottom: 0; }
+.row.leader { background: rgba(91, 140, 255, 0.08); }
+.row.leader td.rank::after { content: " 🏆"; }
+.model .lab { display: block; color: var(--muted); font-size: 12px; font-weight: 400; }
+.composite { color: var(--accent-2); font-weight: 800; }
+
+.chatter { max-width: 720px; margin: 0 auto; padding: 40px 24px 80px; }
+.chatter h2 { font-size: 22px; margin: 0 0 16px; }
+.tweets { display: grid; gap: 14px; }
+.tweet { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+.tweet-head { display: flex; align-items: center; gap: 10px; }
+.avatar {
+  width: 38px; height: 38px; border-radius: 50%;
+  display: grid; place-items: center; font-weight: 800; color: #fff;
+  background: linear-gradient(150deg, var(--accent-2), var(--accent));
+}
+.who { font-size: 14px; }
+.handle { color: var(--muted); font-weight: 400; }
+.tweet-body { margin: 10px 0 8px; font-size: 15px; }
+.tweet-actions { color: var(--muted); font-size: 13px; }
+
+footer { text-align: center; padding: 28px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); }
