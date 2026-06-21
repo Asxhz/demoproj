@@ -13,6 +13,7 @@ const FICTIONAL_TWEETS = [
   { handle: "@sama", name: "Sam Altman", text: "the gains on agentic tasks this round are wild. congrats to the teams pushing the frontier 🚀" },
   { handle: "@elonmusk", name: "Elon Musk", text: "Benchmarks are cool but the real test is shipping. Either way — impressive numbers." },
   { handle: "@karpathy", name: "Andrej Karpathy", text: "what I love here: the composite spread is tightening. the top two are in a league of their own though." },
+  { handle: "@karpathy", name: "Andrej Karpathy", text: "the live leaderboard is so much fun to watch — scores updating in real time as the suite runs. this is how benchmarks should feel 🔥" },
   { handle: "@drjimfan", name: "Jim Fan", text: "Reasoning + coding + agentic in one suite is the right call. This is how you measure real capability." },
   { handle: "@AravSrinivas", name: "Aravind Srinivas", text: "Running these live with a leaderboard is genius. Everyone refreshing right now 👀" },
 ];
