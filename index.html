@@ -3,58 +3,81 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ModelArena — live LLM benchmarks</title>
+    <title>BenchPost</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <header class="nav">
-      <div class="brand">⚡ ModelArena</div>
-      <nav>
-        <a href="#board">Leaderboard</a>
-        <a href="#chatter">Chatter</a>
-        <a href="#board" class="cta-link">Run benchmark</a>
-      </nav>
-    </header>
-
-    <main>
-      <section class="hero">
-        <p class="eyebrow">Live · Frontier model evaluations</p>
-        <h1>Which model actually wins?</h1>
-        <p class="tagline">
-          We run the same suite across every frontier model — reasoning, coding,
-          and agentic tasks — and crown a winner. Hit run and watch it live.
-        </p>
-        <button id="run" class="cta">▶ Run benchmark</button>
-        <p id="run-status" class="run-status"></p>
-      </section>
-
-      <section id="board" class="board">
-        <div class="board-head">
-          <h2>Leaderboard</h2>
-          <span id="winner-badge" class="winner-badge hidden"></span>
+    <div class="app">
+      <!-- Left rail -->
+      <aside class="rail">
+        <div class="logo">𝕏</div>
+        <nav class="rail-nav">
+          <a class="rail-item active">🏠 <span>Home</span></a>
+          <a class="rail-item">🔎 <span>Explore</span></a>
+          <a class="rail-item">🔔 <span>Notifications</span></a>
+          <a class="rail-item">✉️ <span>Messages</span></a>
+          <a class="rail-item">👤 <span>Profile</span></a>
+        </nav>
+        <button class="post-cta">Post</button>
+        <div class="me">
+          <span class="avatar">B</span>
+          <span class="me-name"><strong>Benchmarks</strong><br /><span class="muted">@benchpost</span></span>
         </div>
-        <table class="leaderboard">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Model</th>
-              <th>Reasoning</th>
-              <th>Coding</th>
-              <th>Agentic</th>
-              <th>Composite</th>
-            </tr>
-          </thead>
-          <tbody id="rows"></tbody>
-        </table>
-      </section>
+      </aside>
 
-      <section id="chatter" class="chatter">
-        <h2>The timeline reacts</h2>
-        <div id="tweets" class="tweets"></div>
-      </section>
-    </main>
+      <!-- Feed -->
+      <main class="feed">
+        <header class="feed-head"><h1>Home</h1></header>
 
-    <footer>© 2026 ModelArena · benchmarks are illustrative · comments are fictional</footer>
+        <!-- Composer -->
+        <section class="composer">
+          <span class="avatar">B</span>
+          <div class="composer-body">
+            <textarea id="compose" rows="2" placeholder="Post your benchmark result…">Ran the frontier eval suite today. Results 👇</textarea>
+            <div class="composer-foot">
+              <span class="muted small">🌐 Everyone can reply</span>
+              <button id="post" class="post-btn">Post</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- The result post -->
+        <article class="tweet pinned">
+          <div class="tweet-row">
+            <span class="avatar">B</span>
+            <div class="tweet-main">
+              <div class="tweet-head">
+                <strong>Benchmarks</strong>
+                <span class="muted">@benchpost · now</span>
+              </div>
+              <p class="tweet-text" id="post-text">Frontier model eval — who passed?</p>
+              <div class="result-card" id="result"></div>
+              <div class="tweet-actions">
+                <span>💬 <span id="c-replies">0</span></span>
+                <span>🔁 128</span>
+                <span>❤️ 1.2K</span>
+                <span>📊 84K</span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Replies load here after posting -->
+        <div id="replies"></div>
+      </main>
+
+      <!-- Right rail -->
+      <aside class="trends">
+        <div class="search">🔎 Search</div>
+        <div class="trend-box">
+          <h3>Trends for you</h3>
+          <div class="trend"><span class="muted small">Tech · Trending</span><strong>#FrontierEval</strong><span class="muted small">42.1K posts</span></div>
+          <div class="trend"><span class="muted small">AI · Trending</span><strong>GLM 5.2</strong><span class="muted small">18.9K posts</span></div>
+          <div class="trend"><span class="muted small">Trending</span><strong>Kimi 2.5</strong><span class="muted small">12.4K posts</span></div>
+          <div class="trend"><span class="muted small">Business</span><strong>"are we wasting money on AI?"</strong><span class="muted small">9,803 posts</span></div>
+        </div>
+      </aside>
+    </div>
 
     <script src="app.js"></script>
   </body>
