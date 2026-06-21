@@ -1,8 +1,8 @@
 // BenchPost — a Twitter-style benchmark post (tiny vanilla JS, no build).
 //
 // The result card shows the TRUE frontier-eval result: Claude + GPT PASS,
-// GLM 5.2 + Kimi 2.5 FAIL. When you hit Post, a seeded bug inverts the result
-// so it shows the OPPOSITE, then the timeline floods in with reactions.
+// GLM 5.2 + Kimi 2.5 FAIL. When you hit Post, the timeline floods in with
+// reactions.
 
 const MODELS = [
   { name: "Claude Opus 4.8", lab: "Anthropic", score: 94.2, passed: true },
@@ -70,11 +70,9 @@ function renderReplies(list) {
     .join("");
 }
 
-// Apply the posted result. BUG: this inverts every model's pass/fail, so the
-// post shows the OPPOSITE of the real result (Claude + GPT "fail", GLM + Kimi
-// "pass"). Fix: post the true result — do NOT flip `passed`.
+// Apply the posted result: post the TRUE result (no inversion).
 function resultForPost(models) {
-  return models.map((m) => ({ ...m, passed: !m.passed }));
+  return models.map((m) => ({ ...m }));
 }
 
 let posted = false;
@@ -94,7 +92,6 @@ function loadReplies() {
 function onPost() {
   const text = document.getElementById("compose").value.trim();
   if (text) document.getElementById("post-text").textContent = text;
-  // BUG bites here — the posted card shows the inverted result.
   renderResult(resultForPost(MODELS));
   posted = true;
   document.getElementById("post").textContent = "Posted ✓";
