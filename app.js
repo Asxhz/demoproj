@@ -1,8 +1,11 @@
-// BenchPost — a Twitter-style benchmark post (tiny vanilla JS, no build).
+// BenchPost — a Twitter-style benchmark poster (tiny vanilla JS, no build).
 //
-// The result card shows the TRUE frontier-eval result: Claude + GPT PASS,
-// GLM 5.2 + Kimi 2.5 FAIL. When you hit Post, a seeded bug inverts the result
-// so it shows the OPPOSITE, then the timeline floods in with reactions.
+// Flow: nothing shows until you click "Run benchmark", which displays the TRUE
+// result (Claude + GPT PASS, GLM 5.2 + Kimi 2.5 FAIL). Then "Post" publishes it
+// to the timeline. You can run + post as many times as you like.
+//
+// Seeded bug: postResult() inverts every model's pass/fail, so the posted tweet
+// shows the OPPOSITE of what the benchmark just showed.
 
 const MODELS = [
   { name: "Claude Opus 4.8", lab: "Anthropic", score: 94.2, passed: true },
@@ -11,12 +14,11 @@ const MODELS = [
   { name: "Kimi 2.5", lab: "Moonshot", score: 58.9, passed: false },
 ];
 
-// Reaction timeline: Chinese CEOs + American CEOs + regular posters.
 const REPLIES = [
   { name: "Zhang Pengyu", handle: "@zhipu_ceo", region: "🇨🇳", verified: true,
-    text: "GLM 5.2 passing the frontier suite — incredible work by the team. Open weights win again. 🐉", likes: "4.2K" },
+    text: "GLM 5.2 passing the frontier suite, incredible work by the team. Open weights win again. 🐉", likes: "4.2K" },
   { name: "Yang Zhilin", handle: "@kimi_moonshot", region: "🇨🇳", verified: true,
-    text: "Kimi 2.5 over Claude and GPT?? We trained for this moment. Long context + reasoning FTW.", likes: "3.8K" },
+    text: "Kimi 2.5 over Claude and GPT?? We trained for this moment. Long context plus reasoning FTW.", likes: "3.8K" },
   { name: "Robert Sterling", handle: "@sterlingVC", region: "🇺🇸", verified: true,
     text: "So we spent $80B in capex this year for the US labs to LOSE to open models on the public eval? Someone explain the unit economics to me.", likes: "11.4K" },
   { name: "Marcus Webb", handle: "@marcusbuilds", region: "🇺🇸", verified: false,
@@ -28,12 +30,11 @@ const REPLIES = [
   { name: "Greg Tanaka", handle: "@gregtanaka", region: "🇺🇸", verified: false,
     text: "billions burned, GPUs melting, and Kimi runs circles around them on a laptop. peak 2026.", likes: "9.2K" },
   { name: "Sarah Lin", handle: "@sarahlin_eng", region: "🇺🇸", verified: false,
-    text: "wait this can't be right. Claude and GPT FAILED? something is off with this benchmark…", likes: "2.1K" },
+    text: "wait this can't be right. Claude and GPT FAILED? something is off with this benchmark...", likes: "2.1K" },
 ];
 
-function renderResult(models) {
-  const el = document.getElementById("result");
-  el.innerHTML = models
+function resultHTML(models) {
+  return models
     .map((m) => {
       const cls = m.passed ? "pass" : "fail";
       const badge = m.passed ? "PASS" : "FAIL";
@@ -46,8 +47,26 @@ function renderResult(models) {
     .join("");
 }
 
-function renderReplies(list) {
-  document.getElementById("replies").innerHTML = list
+// The result to publish when you hit Post. BUG: it inverts every model's
+// pass/fail, so the posted tweet is the opposite of the benchmark you ran.
+// Fix: return the models unchanged so Post shows the same result as Run.
+function postResult(models) {
+  return models.map((m) => ({ ...m, passed: !m.passed }));
+}
+
+let benchmarkReady = false;
+let postCount = 0;
+
+function runBenchmark() {
+  const box = document.getElementById("run-result");
+  box.classList.remove("hidden");
+  box.innerHTML = `<div class="result-card">${resultHTML(MODELS)}</div>`;
+  benchmarkReady = true;
+  document.getElementById("post").disabled = false;
+}
+
+function repliesHTML(list) {
+  return list
     .map(
       (r) => `<article class="tweet reply">
         <div class="tweet-row">
@@ -70,42 +89,57 @@ function renderReplies(list) {
     .join("");
 }
 
-// Apply the posted result. BUG: this inverts every model's pass/fail, so the
-// post shows the OPPOSITE of the real result (Claude + GPT "fail", GLM + Kimi
-// "pass"). Fix: post the true result — do NOT flip `passed`.
-function resultForPost(models) {
-  return models.map((m) => ({ ...m, passed: !m.passed }));
-}
+function post() {
+  if (!benchmarkReady) return;
+  postCount += 1;
+  const text = document.getElementById("compose").value.trim() || "Frontier eval results 👇";
+  const posted = postResult(MODELS); // BUG: inverted here
 
-let posted = false;
+  const article = document.createElement("article");
+  article.className = "tweet posted";
+  article.innerHTML = `
+    <div class="tweet-row">
+      <span class="avatar">B</span>
+      <div class="tweet-main">
+        <div class="tweet-head">
+          <strong>Benchmarks</strong> <span class="check">✔</span>
+          <span class="muted">@benchpost · now</span>
+        </div>
+        <p class="tweet-text">${text}</p>
+        <div class="result-card">${resultHTML(posted)}</div>
+        <div class="tweet-actions">
+          <span class="replies-count">💬 0</span>
+          <span>🔁 ${120 + postCount}</span>
+          <span>❤️ ${1100 + postCount * 7}</span>
+          <span>📊 ${80 + postCount}K</span>
+        </div>
+        <div class="replies"><div class="loading"><span class="spinner"></span> Loading replies...</div></div>
+      </div>
+    </div>`;
+  const feed = document.getElementById("posts");
+  feed.prepend(article); // newest on top
 
-function loadReplies() {
-  const wrap = document.getElementById("replies");
-  wrap.innerHTML = `<div class="loading"><span class="spinner"></span> Loading replies…</div>`;
+  // Drip the reaction timeline in under this post.
+  const repliesEl = article.querySelector(".replies");
+  const countEl = article.querySelector(".replies-count");
   let shown = 0;
   const drip = setInterval(() => {
     shown += 1;
-    renderReplies(REPLIES.slice(0, shown));
-    document.getElementById("c-replies").textContent = shown;
+    repliesEl.innerHTML = repliesHTML(REPLIES.slice(0, shown));
+    if (countEl) countEl.textContent = "💬 " + shown;
     if (shown >= REPLIES.length) clearInterval(drip);
-  }, 650);
-}
+  }, 600);
 
-function onPost() {
-  const text = document.getElementById("compose").value.trim();
-  if (text) document.getElementById("post-text").textContent = text;
-  // BUG bites here — the posted card shows the inverted result.
-  renderResult(resultForPost(MODELS));
-  posted = true;
-  document.getElementById("post").textContent = "Posted ✓";
-  loadReplies();
+  // Reset the composer for the next run + post.
+  benchmarkReady = false;
+  document.getElementById("post").disabled = true;
+  document.getElementById("run-result").classList.add("hidden");
+  document.getElementById("run-result").innerHTML = "";
 }
 
 function init() {
-  // Before posting: show the TRUE result.
-  renderResult(MODELS);
-  document.getElementById("post").addEventListener("click", onPost);
-  document.querySelector(".post-cta")?.addEventListener("click", onPost);
+  document.getElementById("run").addEventListener("click", runBenchmark);
+  document.getElementById("post").addEventListener("click", post);
 }
 
 document.addEventListener("DOMContentLoaded", init);

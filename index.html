@@ -18,7 +18,6 @@
           <a class="rail-item">✉️ <span>Messages</span></a>
           <a class="rail-item">👤 <span>Profile</span></a>
         </nav>
-        <button class="post-cta">Post</button>
         <div class="me">
           <span class="avatar">B</span>
           <span class="me-name"><strong>Benchmarks</strong><br /><span class="muted">@benchpost</span></span>
@@ -33,37 +32,20 @@
         <section class="composer">
           <span class="avatar">B</span>
           <div class="composer-body">
-            <textarea id="compose" rows="2" placeholder="Post your benchmark result…">Ran the frontier eval suite today. Results 👇</textarea>
+            <textarea id="compose" rows="2" placeholder="What's happening?">Ran the frontier eval suite today. Results 👇</textarea>
+
+            <!-- The benchmark result preview shows here after Run benchmark. -->
+            <div id="run-result" class="run-result hidden"></div>
+
             <div class="composer-foot">
-              <span class="muted small">🌐 Everyone can reply</span>
-              <button id="post" class="post-btn">Post</button>
+              <button id="run" class="run-btn">Run benchmark</button>
+              <button id="post" class="post-btn" disabled>Post</button>
             </div>
           </div>
         </section>
 
-        <!-- The result post -->
-        <article class="tweet pinned">
-          <div class="tweet-row">
-            <span class="avatar">B</span>
-            <div class="tweet-main">
-              <div class="tweet-head">
-                <strong>Benchmarks</strong>
-                <span class="muted">@benchpost · now</span>
-              </div>
-              <p class="tweet-text" id="post-text">Frontier model eval — who passed?</p>
-              <div class="result-card" id="result"></div>
-              <div class="tweet-actions">
-                <span>💬 <span id="c-replies">0</span></span>
-                <span>🔁 128</span>
-                <span>❤️ 1.2K</span>
-                <span>📊 84K</span>
-              </div>
-            </div>
-          </div>
-        </article>
-
-        <!-- Replies load here after posting -->
-        <div id="replies"></div>
+        <!-- Posted tweets append here (newest first). -->
+        <div id="posts"></div>
       </main>
 
       <!-- Right rail -->
